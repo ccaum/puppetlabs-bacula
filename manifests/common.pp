@@ -31,6 +31,13 @@ class bacula::common(
     }
   }
 
+  if $manage_db_tables {
+    exec { 'make_db_tables':
+      command     => "/usr/lib/bacula/make_bacula_tables --host=${db_host} --user=${db_user} --password=${db_password} --port=${db_port} --database=${db_database}",
+      refreshonly => true,
+    }
+  }
+
   if $manage_db {
     case $db_backend {
       'mysql': {
@@ -38,19 +45,20 @@ class bacula::common(
           user     => $db_user,
           password => $db_password,
           host     => $db_host,
+          notify   => $manage_db_tables ? {
+            true  => Exec['make_db_tables'],
+            false => undef,
+          },
+          require => defined(Class['mysql::server']) ? {
+            true  => Class['mysql::server'],
+            false => undef,
+          },
         }
       }
 
       default: {
         fail "The bacula module does not support managing the ${db_backend} backend database"
       }
-    }
-  }
-
-  if $manage_db_tables {
-    exec { 'make_db_tables':
-      command     => "/usr/lib/bacula/make_bacula_tables --host ${db_host} --user ${db_user} --password ${db_password} --port ${db_port} --database ${db_database}",
-      refreshonly => true,
     }
   }
 
