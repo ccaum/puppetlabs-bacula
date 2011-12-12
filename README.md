@@ -16,6 +16,7 @@ REQUIREMENTS
 
  * Puppet >=2.6 if using parameterized classes
  * Puppetlabs/stdlib module.  Can be obtained here http://forge.puppetlabs.com/puppetlabs/stdlib or with the command `puppet-module install puppetlabs/stdlib`
+ * Puppetlabs/mysql module.  Can be obtained here http://forge.puppetlabs.com/puppetlabs/mysql or with the command `puppet-module install puppetlabs/mysql`
 
 
 CONFIGURATION
@@ -87,6 +88,9 @@ The following lists all the class parameters the bacula class accepts as well as
 
 
     UNCOMMON PARAMETERS:
+    manage_db_tables              bacula_manage_db_tables         Whether to manage the SQL tables in te database specified in db_backend. Defaults to true
+    manage_db                     bacula_manage_db                Whether to manage creation of the database specified by db_database. Default to false. In order
+                                                                  for this to work, you must declare the `mysql::server` class
     director_package              bacula_director_package         The name of the package to install the director
     storage_package               bacula_storage_package          The name of the package to install the storage
     client_package                bacula_client_package           The name of the package to install the client
