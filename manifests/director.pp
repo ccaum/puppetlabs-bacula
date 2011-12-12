@@ -40,6 +40,11 @@ class bacula::director(
     $server,
     $password,
     $db_backend,
+    $db_user,
+    $db_password,
+    $db_host,
+    $db_database,
+    $db_port,
     $storage_server,
     $director_package = '',
     $mysql_package,
@@ -72,8 +77,10 @@ class bacula::director(
     }
   }
 
-  package { $db_package:
-    ensure => installed,
+  if $db_package {
+    package { $db_package:
+      ensure => installed,
+    }
   }
 
   # Create the configuration for the Director and make sure the directory for
@@ -85,15 +92,34 @@ class bacula::director(
     group   => 'bacula',
     content => template($template),
     notify  => Service['bacula-dir'],
-    require => Package[$db_package],
+    before  => Service['bacula-dir'],
+    require => $db_package ? {
+      ''      => undef,
+      default => Package[$db_package],
+    }
+  }
+
+  file { '/etc/bacula/bacula-dir.d':
+    ensure => directory,
+    owner  => 'bacula',
+    group  => 'bacula',
+    before => Service['bacula-dir'],
+  }
+
+  file { '/etc/bacula/bacula-dir.d/empty.conf':
+    ensure => file,
+    before => Service['bacula-dir'],
   }
 
   # Register the Service so we can manage it through Puppet
   service { 'bacula-dir':
     enable     => true,
     ensure     => running,
-    require    => Package[$db_package],
     hasstatus  => true,
     hasrestart => true,
+    require    =>  $db_package ? {
+      ''       => undef,
+      default  => Package[$db_package],
+    }
   }
 }
